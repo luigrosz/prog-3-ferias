@@ -34,10 +34,24 @@ public class GerenciadorItens {
   public void exportarParaArquivo(String caminho) {
     try (PrintWriter pw = new PrintWriter(new FileWriter(caminho))) {
       for (Item i : itens) {
-        pw.println(i.getClass().getSimpleName() + ";" +
-            i.getTitulo() + ";" +
-            i.getDescricao() + ";" +
-            i.getDataCadastro());
+        String tipo = i.getClass().getSimpleName();
+        if (tipo.equals("Filme")) { // i.getClass().SimpleName() = filme || livro
+          Filme f = (Filme) i;
+          pw.println("Filme;" +
+              f.getTitulo() + ";" +
+              f.getDescricao() + ";" +
+              f.getDataCadastro() + ";" +
+              f.getDuracaoMinutos() + ";" +
+              f.getDiretor());
+        } else if (tipo == "Livro") {
+          Livro l = (Livro) i;
+          pw.println("Livro;" +
+              l.getTitulo() + ";" +
+              l.getDescricao() + ";" +
+              l.getDataCadastro() + ";" +
+              l.getNumeroPaginas() + ";" +
+              l.getAutor());
+        }
       }
     } catch (IOException e) {
       System.out.println("Erro ao exportar: " + e.getMessage());
@@ -48,13 +62,25 @@ public class GerenciadorItens {
     try (BufferedReader br = new BufferedReader(new FileReader(caminho))) {
       String linha;
       while ((linha = br.readLine()) != null) {
-        String[] partes = linha.split(","); // csv
-        if (partes.length >= 4) {
+        String[] partes = linha.split(";");
+        if (partes.length >= 6) {
+          String tipo = partes[0];
           String titulo = partes[1];
           String descricao = partes[2];
           LocalDate data = LocalDate.parse(partes[3]);
-          Item item = new Item(titulo, descricao, data);
-          itens.add(item);
+          if (tipo.equals("Livro")) {
+            String numeroPaginas = partes[4];
+            String autor = partes[5];
+            int paginas = Integer.parseInt(numeroPaginas);
+            Livro livro = new Livro(titulo, descricao, data, autor, paginas);
+            itens.add(livro);
+          } else if (tipo.equals("Filme")) {
+            String duracaoMinutos = partes[4];
+            String diretor = partes[5];
+            int duracao = Integer.parseInt(duracaoMinutos);
+            Filme filme = new Filme(titulo, descricao, data, diretor, duracao);
+            itens.add(filme);
+          }
         }
       }
     } catch (IOException e) {
